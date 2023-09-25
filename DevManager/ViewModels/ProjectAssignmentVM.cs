@@ -1,12 +1,12 @@
 ﻿namespace DevManager.ViewModels
 {
-    public class ProjectTaskVM
+    public class ProjectAssignmentVM
     {
         public int ProjectId { get; set; }
-        public int TaskId { get; set; }
+        public int AssignmentId { get; set; }
 
         public ProjectVM Project { get; set; }
-        public TaskVM Task { get; set; }
+        public AssignmentVM Assignment { get; set; }
 
     }
 }

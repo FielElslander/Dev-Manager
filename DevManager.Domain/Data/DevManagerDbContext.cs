@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using DevManager.Domain.Entities;
-using Task = DevManager.Domain.Entities.Task;
-using Microsoft.Extensions.Configuration;
 
 namespace DevManager.Domain.Data
 {
@@ -19,11 +17,17 @@ namespace DevManager.Domain.Data
         {
         }
 
+        public virtual DbSet<AspNetRole> AspNetRoles { get; set; } = null!;
+        public virtual DbSet<AspNetRoleClaim> AspNetRoleClaims { get; set; } = null!;
+        public virtual DbSet<AspNetUser> AspNetUsers { get; set; } = null!;
+        public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; } = null!;
+        public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; } = null!;
+        public virtual DbSet<AspNetUserToken> AspNetUserTokens { get; set; } = null!;
+        public virtual DbSet<Assignment> Assignments { get; set; } = null!;
         public virtual DbSet<Customer> Customers { get; set; } = null!;
         public virtual DbSet<CustomerProject> CustomerProjects { get; set; } = null!;
         public virtual DbSet<Project> Projects { get; set; } = null!;
-        public virtual DbSet<ProjectTask> ProjectTasks { get; set; } = null!;
-        public virtual DbSet<Task> Tasks { get; set; } = null!;
+        public virtual DbSet<ProjectAssignment> ProjectAssignments { get; set; } = null!;
         public virtual DbSet<Team> Teams { get; set; } = null!;
         public virtual DbSet<TeamProject> TeamProjects { get; set; } = null!;
         public virtual DbSet<TeamUser> TeamUsers { get; set; } = null!;
@@ -32,15 +36,126 @@ namespace DevManager.Domain.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json")
-                    .Build();
-                optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("Server=.\\SQL19_VIVES; Database=DevManager; Trusted_Connection=True; MultipleActiveResultSets=true;");
             }
         }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AspNetRole>(entity =>
+            {
+                entity.HasIndex(e => e.NormalizedName, "RoleNameIndex")
+                    .IsUnique()
+                    .HasFilter("([NormalizedName] IS NOT NULL)");
+
+                entity.Property(e => e.Name).HasMaxLength(256);
+
+                entity.Property(e => e.NormalizedName).HasMaxLength(256);
+            });
+
+            modelBuilder.Entity<AspNetRoleClaim>(entity =>
+            {
+                entity.HasIndex(e => e.RoleId, "IX_AspNetRoleClaims_RoleId");
+
+                entity.HasOne(d => d.Role)
+                    .WithMany(p => p.AspNetRoleClaims)
+                    .HasForeignKey(d => d.RoleId);
+            });
+
+            modelBuilder.Entity<AspNetUser>(entity =>
+            {
+                entity.HasIndex(e => e.NormalizedEmail, "EmailIndex");
+
+                entity.HasIndex(e => e.NormalizedUserName, "UserNameIndex")
+                    .IsUnique()
+                    .HasFilter("([NormalizedUserName] IS NOT NULL)");
+
+                entity.Property(e => e.Email).HasMaxLength(256);
+
+                entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
+
+                entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
+
+                entity.Property(e => e.UserName).HasMaxLength(256);
+
+                entity.HasMany(d => d.Roles)
+                    .WithMany(p => p.Users)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "AspNetUserRole",
+                        l => l.HasOne<AspNetRole>().WithMany().HasForeignKey("RoleId"),
+                        r => r.HasOne<AspNetUser>().WithMany().HasForeignKey("UserId"),
+                        j =>
+                        {
+                            j.HasKey("UserId", "RoleId");
+
+                            j.ToTable("AspNetUserRoles");
+
+                            j.HasIndex(new[] { "RoleId" }, "IX_AspNetUserRoles_RoleId");
+                        });
+            });
+
+            modelBuilder.Entity<AspNetUserClaim>(entity =>
+            {
+                entity.HasIndex(e => e.UserId, "IX_AspNetUserClaims_UserId");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.AspNetUserClaims)
+                    .HasForeignKey(d => d.UserId);
+            });
+
+            modelBuilder.Entity<AspNetUserLogin>(entity =>
+            {
+                entity.HasKey(e => new { e.LoginProvider, e.ProviderKey });
+
+                entity.HasIndex(e => e.UserId, "IX_AspNetUserLogins_UserId");
+
+                entity.Property(e => e.LoginProvider).HasMaxLength(128);
+
+                entity.Property(e => e.ProviderKey).HasMaxLength(128);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.AspNetUserLogins)
+                    .HasForeignKey(d => d.UserId);
+            });
+
+            modelBuilder.Entity<AspNetUserToken>(entity =>
+            {
+                entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name });
+
+                entity.Property(e => e.LoginProvider).HasMaxLength(128);
+
+                entity.Property(e => e.Name).HasMaxLength(128);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.AspNetUserTokens)
+                    .HasForeignKey(d => d.UserId);
+            });
+
+            modelBuilder.Entity<Assignment>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("Assignment");
+
+                entity.Property(e => e.AssignmentDescription)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
+
+                entity.Property(e => e.AssignmentName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ProjectId).HasColumnName("ProjectID");
+
+                entity.Property(e => e.UserId)
+                    .HasMaxLength(50)
+                    .IsUnicode(false)
+                    .HasColumnName("UserID");
+            });
+
             modelBuilder.Entity<Customer>(entity =>
             {
                 entity.HasNoKey();
@@ -84,35 +199,13 @@ namespace DevManager.Domain.Data
                     .IsFixedLength();
             });
 
-            modelBuilder.Entity<ProjectTask>(entity =>
+            modelBuilder.Entity<ProjectAssignment>(entity =>
             {
                 entity.HasNoKey();
 
-                entity.Property(e => e.ProjectId).HasColumnName("ProjectID");
-
-                entity.Property(e => e.TaskId).HasColumnName("TaskID");
-            });
-
-            modelBuilder.Entity<Task>(entity =>
-            {
-                entity.HasNoKey();
+                entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
 
                 entity.Property(e => e.ProjectId).HasColumnName("ProjectID");
-
-                entity.Property(e => e.TaskDescription)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.TaskId).HasColumnName("TaskID");
-
-                entity.Property(e => e.TaskName)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.UserId)
-                    .HasMaxLength(50)
-                    .IsUnicode(false)
-                    .HasColumnName("UserID");
             });
 
             modelBuilder.Entity<Team>(entity =>
