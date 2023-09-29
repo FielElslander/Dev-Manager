@@ -40,7 +40,7 @@ namespace DevManager.Service
 
         public Task Update(Customer entity)
         {
-            throw new NotImplementedException();
+            return _CustomerDAO.Update(entity);
         }
     }
 }
