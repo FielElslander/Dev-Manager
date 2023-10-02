@@ -10,10 +10,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DevManager.Repositories
 {
-    public class ProjectDAO : IDAO<Project>
+    public class UserDAO : IDAO<AspNetUser>
     {
         private readonly DevManagerDbContext _dbContext;
-        public async System.Threading.Tasks.Task Add(Project entity)
+        public async System.Threading.Tasks.Task Add(AspNetUser entity)
         {
             _dbContext.Entry(entity).State = EntityState.Added;
             try
@@ -27,7 +27,7 @@ namespace DevManager.Repositories
             }
         }
 
-        public async System.Threading.Tasks.Task Delete(Project entity)
+        public async System.Threading.Tasks.Task Delete(AspNetUser entity)
         {
             _dbContext.Entry(entity).State = EntityState.Deleted;
             try
@@ -41,31 +41,25 @@ namespace DevManager.Repositories
             }
         }
 
-        public async Task<Project> FindById(int id)
+        public async Task<AspNetUser> FindById(int id)
+        {
+            throw new NotImplementedException();
+            //migration for new userID!
+        }
+
+        public async Task<IEnumerable<AspNetUser>> GetAll()
         {
             try
             {
-                return await _dbContext.Projects.Where(a => a.ProjectId == id).FirstOrDefaultAsync();
+                return await _dbContext.AspNetUsers.ToListAsync();
             }
             catch(Exception ex)
             {
-                throw new Exception("Error in ProjectDAO.FindById()", ex);
+                throw new Exception("Error in UserDAO.GetAll()", ex);
             }
         }
 
-        public async Task<IEnumerable<Project>> GetAll()
-        {
-            try
-            {
-                return await _dbContext.Projects.ToListAsync();
-            }
-            catch(Exception ex)
-            {
-                throw new Exception("Error in ProjectDAO.GetALl()", ex);
-            }
-        }
-
-        public async System.Threading.Tasks.Task Update(Project entity)
+        public async System.Threading.Tasks.Task Update(AspNetUser entity)
         {
             _dbContext.Entry(entity).State = EntityState.Modified;
             try
