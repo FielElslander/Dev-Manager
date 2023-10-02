@@ -39,7 +39,7 @@ namespace DevManager.Service
 
         public System.Threading.Tasks.Task Update(Project entity)
         {
-            return _ProjectDAO.Update(entity)
+            return _ProjectDAO.Update(entity);
         }
     }
 }
