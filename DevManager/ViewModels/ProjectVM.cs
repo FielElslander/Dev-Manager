@@ -8,6 +8,6 @@
         public string language { get; set; }
         public int CustomerId { get; set; }
 
-        public IEnumerable<TaskVM> taskVMs { get; set; }
+        public IEnumerable<AssignmentVM> assignmentVMs { get; set; }
     }
 }

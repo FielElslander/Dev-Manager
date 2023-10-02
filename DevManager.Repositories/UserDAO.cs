@@ -44,7 +44,18 @@ namespace DevManager.Repositories
         public async Task<AspNetUser> FindById(int id)
         {
             throw new NotImplementedException();
-            //migration for new userID!
+        }
+
+        public async Task<AspNetUser> FindByUserId(string id)
+        {
+            try
+            {
+                return await _dbContext.AspNetUsers.Where(a => a.Id == id).FirstOrDefaultAsync();
+            }
+            catch(Exception ex)
+            {
+                throw new Exception("Error in UserDAO.FindByUserId()", ex);
+            }
         }
 
         public async Task<IEnumerable<AspNetUser>> GetAll()
