@@ -24,6 +24,7 @@ namespace DevManager.Domain.Data
         public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; } = null!;
         public virtual DbSet<AspNetUserToken> AspNetUserTokens { get; set; } = null!;
         public virtual DbSet<Assignment> Assignments { get; set; } = null!;
+        public virtual DbSet<CalendarEvent> CalendarEvents { get; set; } = null!;
         public virtual DbSet<Customer> Customers { get; set; } = null!;
         public virtual DbSet<CustomerProject> CustomerProjects { get; set; } = null!;
         public virtual DbSet<Project> Projects { get; set; } = null!;
@@ -37,7 +38,7 @@ namespace DevManager.Domain.Data
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=.\\SQL19_VIVES; Database=DevManager; Trusted_Connection=True; MultipleActiveResultSets=true;");
+                optionsBuilder.UseSqlServer("Server=.\\SQL19_VIVES; Database=DevManager; Trusted_Connection=True;MultipleActiveResultSets=true;");
             }
         }
 
@@ -134,15 +135,15 @@ namespace DevManager.Domain.Data
 
             modelBuilder.Entity<Assignment>(entity =>
             {
-                entity.HasNoKey();
-
                 entity.ToTable("Assignment");
+
+                entity.Property(e => e.AssignmentId)
+                    .ValueGeneratedNever()
+                    .HasColumnName("AssignmentID");
 
                 entity.Property(e => e.AssignmentDescription)
                     .HasMaxLength(50)
                     .IsUnicode(false);
-
-                entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
 
                 entity.Property(e => e.AssignmentName)
                     .HasMaxLength(50)
@@ -154,6 +155,27 @@ namespace DevManager.Domain.Data
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasColumnName("UserID");
+            });
+
+            modelBuilder.Entity<CalendarEvent>(entity =>
+            {
+                entity.HasKey(e => e.EventId);
+
+                entity.ToTable("CalendarEvent");
+
+                entity.Property(e => e.EventId)
+                    .ValueGeneratedNever()
+                    .HasColumnName("EventID");
+
+                entity.Property(e => e.Description).HasMaxLength(256);
+
+                entity.Property(e => e.End).HasColumnType("datetime");
+
+                entity.Property(e => e.Start).HasColumnType("datetime");
+
+                entity.Property(e => e.Subject).HasMaxLength(256);
+
+                entity.Property(e => e.ThemeColor).HasMaxLength(10);
             });
 
             modelBuilder.Entity<Customer>(entity =>

@@ -1,6 +1,9 @@
 using DevManager.Data;
+using DevManager.Areas.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using DevManager.Repositories;
+using DevManager.Domain.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +13,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddAutoMapper(typeof(Program));
+
+//dependency injections
+//services and daos
+builder.Services.AddTransient<ProjectDAO, ProjectDAO>();
+builder.Services.AddTransient<UserDAO, UserDAO>();
+builder.Services.AddTransient<AssignmentDAO, AssignmentDAO>();
+builder.Services.AddTransient<TeamDAO, TeamDAO>();
+builder.Services.AddTransient<CustomerDAO, CustomerDAO>();
+builder.Services.AddTransient<CalendarEventDAO, CalendarEventDAO>();
 
 var app = builder.Build();
 
